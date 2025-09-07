@@ -1,4 +1,4 @@
-import blackLogo from "../assets/blacklogo.png";
+import blackLogo from "./assets/blacklogo.png";
 import "./Sidebar.css";
 import { useContext, useEffect } from "react";
 import { MyContext } from "./MyContext.jsx";
