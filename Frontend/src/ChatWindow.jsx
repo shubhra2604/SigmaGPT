@@ -31,15 +31,6 @@ function ChatWindow() {
       return;
     }
 
-    console.log(
-      "API_BASE:",
-      API_BASE,
-      " message:",
-      prompt,
-      " threadId:",
-      currThreadId
-    );
-
     const options = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
