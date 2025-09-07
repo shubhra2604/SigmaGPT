@@ -21,27 +21,46 @@ function ChatWindow() {
     setLoading(true);
     setNewChat(false);
 
-    console.log("message ", prompt, " threadId ", currThreadId);
+    // MUST be set in Render as VITE_API_URL. No localhost fallback.
+    const API_BASE = import.meta.env.VITE_API_URL;
+    if (!API_BASE) {
+      console.error(
+        "VITE_API_URL is not set. Frontend expects a production backend URL."
+      );
+      setLoading(false);
+      return;
+    }
+
+    console.log(
+      "API_BASE:",
+      API_BASE,
+      " message:",
+      prompt,
+      " threadId:",
+      currThreadId
+    );
+
     const options = {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: prompt,
-        threadId: currThreadId,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: prompt, threadId: currThreadId }),
     };
 
     try {
-      const response = await fetch("http://localhost:8080/api/chat", options);
+      const response = await fetch(`${API_BASE}/api/chat`, options);
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("API error:", response.status, text);
+        throw new Error(`API error ${response.status}`);
+      }
       const res = await response.json();
-      console.log(res);
+      console.log("reply:", res);
       setReply(res.reply);
     } catch (err) {
-      console.log(err);
+      console.error("Fetch failed:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   //Append new chat to prevChats
