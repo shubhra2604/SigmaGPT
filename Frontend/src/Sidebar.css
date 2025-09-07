@@ -21,12 +21,12 @@ button {
   cursor: pointer;
 }
 
-.logo {
+.fa-regular fa-face-smile {
   height: 25px;
   width: 25px;
-  background-color: #fff;
-  border-radius: 50%;
-  object-fit: cover;
+  /* background-color: #fff;
+  border-radius: 50%; 
+  object-fit: cover; */
 }
 
 button span {
