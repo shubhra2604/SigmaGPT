@@ -1,3 +1,4 @@
+// Frontend/src/Sidebar.jsx
 import "./Sidebar.css";
 import { useContext, useEffect } from "react";
 import { MyContext } from "./MyContext.jsx";
@@ -15,23 +16,37 @@ function Sidebar() {
     setPrevChats,
   } = useContext(MyContext);
 
+  // MUST be set in Render environment variables
+  const API_BASE = import.meta.env.VITE_API_URL;
+  if (!API_BASE) {
+    console.error(
+      "VITE_API_URL is not set. Frontend expects the production backend URL."
+    );
+  }
+
   const getAllThreads = async () => {
+    if (!API_BASE) return;
     try {
-      const response = await fetch("http://localhost:8080/api/thread");
+      const response = await fetch(`${API_BASE}/api/thread`);
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("getAllThreads API error:", response.status, text);
+        return;
+      }
       const res = await response.json();
       const filteredData = res.map((thread) => ({
         threadId: thread.threadId,
         title: thread.title,
       }));
-      //console.log(filteredData);
       setAllThreads(filteredData);
     } catch (err) {
-      console.log(err);
+      console.error("getAllThreads failed:", err);
     }
   };
 
   useEffect(() => {
     getAllThreads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currThreadId]);
 
   const createNewChat = () => {
@@ -43,32 +58,41 @@ function Sidebar() {
   };
 
   const changeThread = async (newThreadId) => {
+    if (!API_BASE) return;
     setCurrThreadId(newThreadId);
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/thread/${newThreadId}`
-      );
+      const response = await fetch(`${API_BASE}/api/thread/${newThreadId}`);
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("changeThread API error:", response.status, text);
+        return;
+      }
       const res = await response.json();
       console.log(res);
       setPrevChats(res);
       setNewChat(false);
       setReply(null);
     } catch (err) {
-      console.log(err);
+      console.error("changeThread failed:", err);
     }
   };
 
   const deleteThread = async (threadId) => {
+    if (!API_BASE) return;
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/thread/${threadId}`,
-        { method: "DELETE" }
-      );
+      const response = await fetch(`${API_BASE}/api/thread/${threadId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("deleteThread API error:", response.status, text);
+        return;
+      }
       const res = await response.json();
       console.log(res);
 
-      //updated threads re-render
+      // update local list
       setAllThreads((prev) =>
         prev.filter((thread) => thread.threadId !== threadId)
       );
@@ -77,18 +101,14 @@ function Sidebar() {
         createNewChat();
       }
     } catch (err) {
-      console.log(err);
+      console.error("deleteThread failed:", err);
     }
   };
 
   return (
     <section className="sidebar">
       <button onClick={createNewChat}>
-        <img
-          src="src/assets/blacklogo.png"
-          alt="gpt logo"
-          className="logo"
-        ></img>
+        <img src="src/assets/blacklogo.png" alt="gpt logo" className="logo" />
         <span>
           <i className="fa-solid fa-pen-to-square"></i>
         </span>
@@ -98,8 +118,8 @@ function Sidebar() {
         {allThreads?.map((thread, idx) => (
           <li
             key={idx}
-            onClick={(e) => changeThread(thread.threadId)}
-            className={thread.threadId === currThreadId ? "highlighted" : " "}
+            onClick={() => changeThread(thread.threadId)}
+            className={thread.threadId === currThreadId ? "highlighted" : ""}
           >
             {thread.title}
             <i
